@@ -32,9 +32,19 @@ const songs: Song[] = [
 export function App() {
   return (
     <>
-      <h1>Songs</h1>
+      <h1 className="underline">Songs</h1>
       {songs.map((song) => {
-        return <div>{song.artist}</div>;
+        return (
+          <div className="max-w-sm rounded overflow-hidden shadow-lg text-center bg-gray-200 m-3 border-gray-300">
+            <div className="font-bold text-xl mb-2">{song.title}</div>
+            <p className="text-gray-700 text-base p-2">{song.artist}</p>
+            <p className="text-gray-700 text-base p-2">{song.length}</p>
+            <p className="text-gray-700 text-base p-2">{song.createdBy}</p>
+            <p className="text-gray-700 text-base p-2">{song.createAt}</p>
+            <p className="text-gray-700 text-base p-2">{song.updatedBy}</p>
+            <p className="text-gray-700 text-base p-2">{song.updatedAt}</p>
+          </div>
+        );
       })}
     </>
   );
