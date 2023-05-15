@@ -1,12 +1,5 @@
-type Song = {
-  createdBy: string;
-  createAt: string;
-  updatedBy: string;
-  updatedAt: string;
-  artist: string;
-  title: string;
-  length: string;
-};
+import { SongMetaData } from "./SongMetaData";
+import { Song } from "./types/Song";
 
 const songs: Song[] = [
   {
@@ -32,20 +25,29 @@ const songs: Song[] = [
 export function App() {
   return (
     <>
-      <h1 className="underline">Songs</h1>
-      {songs.map((song) => {
-        return (
-          <div className="max-w-sm rounded overflow-hidden shadow-lg text-center bg-gray-200 m-3 border-gray-300">
-            <div className="font-bold text-xl mb-2">{song.title}</div>
-            <p className="text-gray-700 text-base p-2">{song.artist}</p>
-            <p className="text-gray-700 text-base p-2">{song.length}</p>
-            <p className="text-gray-700 text-base p-2">{song.createdBy}</p>
-            <p className="text-gray-700 text-base p-2">{song.createAt}</p>
-            <p className="text-gray-700 text-base p-2">{song.updatedBy}</p>
-            <p className="text-gray-700 text-base p-2">{song.updatedAt}</p>
-          </div>
-        );
-      })}
+      <section>
+        <h1 className="underline text-4xl">Songs</h1>
+        {songs.map((song) => {
+          return (
+            <div className="max-w-sm rounded overflow-hidden shadow-lg m-3 bg-white hover:bg-cyan-500 transition-colors border-gray-300 p-5">
+              <h2 className="font-bold text-3xl mb-2 p-2">
+                {song.title} by: {song.artist}
+              </h2>
+              <SongMetaData
+                email={song.createdBy}
+                date={song.createAt}
+                action="Created"
+              />
+
+              <SongMetaData
+                email={song.updatedBy}
+                date={song.updatedAt}
+                action="Updated"
+              />
+            </div>
+          );
+        })}
+      </section>
     </>
   );
 }
