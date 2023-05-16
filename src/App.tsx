@@ -1,7 +1,7 @@
 import { Box, Button, TextField } from "@mui/material";
 import { SongMetaData } from "./SongMetaData";
 import { Song } from "./types/Song";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const initialSongs: Song[] = [
   {
