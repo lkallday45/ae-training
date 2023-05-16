@@ -1,32 +1,11 @@
-import { Box, Button, TextField } from "@mui/material";
+import { Button } from "@mui/material";
 import { SongMetaData } from "./SongMetaData";
 import { Song } from "./types/Song";
 import { useState } from "react";
+import FormField from "./components/FormField";
+import { songs as initialSongs } from "./mocks/songs";
 
-const initialSongs: Song[] = [
-  {
-    id: "1",
-    createdBy: "admin@email.com",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01",
-    updatedBy: "admin@email.com",
-    artist: "Pink Floyd",
-    title: "Time",
-    length: "6:53",
-  },
-  {
-    id: "2",
-    createdBy: "admin@email.com",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01",
-    updatedBy: "admin@email.com",
-    artist: "The Beatles",
-    title: "Here Comes the Sun",
-    length: "3:05",
-  },
-];
-
-type NewSong = Omit<
+export type NewSong = Omit<
   Song,
   "id" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy"
 >;
@@ -37,15 +16,26 @@ const newSong: NewSong = {
   length: "",
 };
 
-type Errors = {
+export type Errors = {
   artist?: string;
   title?: string;
   length?: string;
 };
 
+export type Touched = {
+  artist?: boolean;
+  title?: boolean;
+  length?: boolean;
+};
+
+export type Status = "idle" | "submitted";
+
 export function App() {
   const [song, setSong] = useState(newSong);
   const [songs, setSongs] = useState(initialSongs);
+  const [status, setStatus] = useState<Status>("idle");
+  const [touched, setTouched] = useState<Touched>({});
+  const [formKey, setFormKey] = useState(1);
 
   // Derived state
   const errors = validate();
@@ -73,11 +63,14 @@ export function App() {
   }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setStatus("submitted");
+
+    if (Object.keys(errors).length > 0) return;
     // Notification
     // "Disable" submit button
     // Save it somewhere
     // Validate
-    e.preventDefault();
 
     setSongs([
       ...songs,
@@ -92,6 +85,10 @@ export function App() {
     ]);
 
     setSong(newSong);
+
+    setStatus("idle");
+    setTouched({});
+    setFormKey(formKey + 1);
   }
   return (
     <>
@@ -100,38 +97,38 @@ export function App() {
 
         <h2 className="text-xl">Add Song</h2>
 
-        <form className="my-4" onSubmit={onSubmit}>
-          <Box className="my-3">
-            <TextField
-              label="Title"
-              value={song.title}
-              id="title"
-              onChange={onChange}
-              error={Boolean(errors.title)}
-              helperText={errors.title}
-            />
-          </Box>
+        <form className="my-4" onSubmit={onSubmit} key={formKey}>
+          <FormField
+            onChange={onChange}
+            setTouched={setTouched}
+            touched={touched}
+            error={errors.title}
+            status={status}
+            label={"Title"}
+            value={song.title}
+            id={"title"}
+          />
+          <FormField
+            onChange={onChange}
+            setTouched={setTouched}
+            touched={touched}
+            error={errors.artist}
+            status={status}
+            label={"Artist"}
+            value={song.artist}
+            id={"artist"}
+          />
+          <FormField
+            onChange={onChange}
+            setTouched={setTouched}
+            touched={touched}
+            error={errors.length}
+            status={status}
+            label={"Length"}
+            value={song.length}
+            id={"length"}
+          />
 
-          <Box className="my-3">
-            <TextField
-              label="Artist"
-              value={song.artist}
-              id="artist"
-              onChange={onChange}
-              error={Boolean(errors.artist)}
-              helperText={errors.artist}
-            />
-          </Box>
-          <Box className="my-3">
-            <TextField
-              label="Length"
-              value={song.length}
-              id="length"
-              onChange={onChange}
-              error={Boolean(errors.length)}
-              helperText={errors.length}
-            />
-          </Box>
           <Button variant="contained" type="submit">
             Add Song
           </Button>
