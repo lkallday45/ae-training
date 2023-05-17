@@ -1,9 +1,9 @@
-import { Button } from "@mui/material";
+import { Button, CircularProgress } from "@mui/material";
 import { SongMetaData } from "./SongMetaData";
 import { Song } from "./types/Song";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FormField from "./components/FormField";
-import { songs as initialSongs } from "./mocks/songs";
+import { getSongs } from "./services/songService";
 
 export type NewSong = Omit<
   Song,
@@ -32,13 +32,29 @@ export type Status = "idle" | "submitted";
 
 export function App() {
   const [song, setSong] = useState(newSong);
-  const [songs, setSongs] = useState(initialSongs);
+  const [songs, setSongs] = useState<Song[]>([]);
   const [status, setStatus] = useState<Status>("idle");
   const [touched, setTouched] = useState<Touched>({});
   const [formKey, setFormKey] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<Error | null>(null);
 
   // Derived state
   const errors = validate();
+
+  useEffect(() => {
+    async function fetchSongs() {
+      try {
+        const songs = await getSongs();
+        setSongs(songs);
+        setIsLoading(false);
+      } catch (error) {
+        setFetchError(error as Error);
+      }
+    }
+
+    fetchSongs();
+  }, []);
 
   function onChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -90,6 +106,11 @@ export function App() {
     setTouched({});
     setFormKey(formKey + 1);
   }
+
+  if (fetchError) {
+    return <p>Failed to load songs.</p>;
+  }
+
   return (
     <>
       <section className="m-3">
@@ -134,26 +155,30 @@ export function App() {
           </Button>
         </form>
 
-        {songs.map((song) => {
-          return (
-            <div className="max-w-sm rounded overflow-hidden shadow-lg bg-cyan-200 hover:bg-cyan-500 transition-colors border-gray-300 p-5 mt-3">
-              <h2 className="font-bold text-3xl mb-2 p-2">
-                {song.title} by: {song.artist}
-              </h2>
-              <SongMetaData
-                email={song.createdBy}
-                date={song.createdAt}
-                action="Created"
-              />
+        {isLoading ? (
+          <CircularProgress />
+        ) : (
+          songs.map((song) => {
+            return (
+              <div className="max-w-sm rounded overflow-hidden shadow-lg bg-cyan-200 hover:bg-cyan-500 transition-colors border-gray-300 p-5 mt-3">
+                <h2 className="font-bold text-3xl mb-2 p-2">
+                  {song.title} by: {song.artist}
+                </h2>
+                <SongMetaData
+                  email={song.createdBy}
+                  date={song.createdAt}
+                  action="Created"
+                />
 
-              <SongMetaData
-                email={song.updatedBy}
-                date={song.updatedAt}
-                action="Updated"
-              />
-            </div>
-          );
-        })}
+                <SongMetaData
+                  email={song.updatedBy}
+                  date={song.updatedAt}
+                  action="Updated"
+                />
+              </div>
+            );
+          })
+        )}
       </section>
     </>
   );

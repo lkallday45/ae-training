@@ -6,8 +6,10 @@ export const handlers = [
   rest.get("/v1/songs", (req, res, ctx) => {
     return res(
       // Respond with a 200 status code
+      // ctx.status(500),
       ctx.status(200),
-      ctx.json(songs)
+      ctx.json(songs),
+      ctx.delay(1000)
     );
   }),
 
