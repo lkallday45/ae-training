@@ -4,6 +4,7 @@ import { Song } from "./types/Song";
 import { useEffect, useState } from "react";
 import FormField from "./components/FormField";
 import { getSongs } from "./services/songService";
+import { useQuery } from "@tanstack/react-query";
 
 export type NewSong = Omit<
   Song,
@@ -32,29 +33,36 @@ export type Status = "idle" | "submitted";
 
 export function App() {
   const [song, setSong] = useState(newSong);
-  const [songs, setSongs] = useState<Song[]>([]);
   const [status, setStatus] = useState<Status>("idle");
   const [touched, setTouched] = useState<Touched>({});
   const [formKey, setFormKey] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<Error | null>(null);
 
   // Derived state
   const errors = validate();
 
-  useEffect(() => {
-    async function fetchSongs() {
-      try {
-        const songs = await getSongs();
-        setSongs(songs);
-        setIsLoading(false);
-      } catch (error) {
-        setFetchError(error as Error);
-      }
-    }
+  const {
+    data: songs = [],
+    isError,
+    isLoading,
+    isRefetching,
+  } = useQuery({
+    queryKey: ["songs"],
+    queryFn: getSongs,
+  });
 
-    fetchSongs();
-  }, []);
+  // useEffect(() => {
+  //   async function fetchSongs() {
+  //     try {
+  //       const songs = await getSongs();
+  //       setSongs(songs);
+  //       setIsLoading(false);
+  //     } catch (error) {
+  //       setFetchError(error as Error);
+  //     }
+  //   }
+
+  //   fetchSongs();
+  // }, []);
 
   function onChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -88,17 +96,17 @@ export function App() {
     // Save it somewhere
     // Validate
 
-    setSongs([
-      ...songs,
-      {
-        ...song,
-        id: Math.random().toString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: "admin@email.com",
-        updatedBy: "admin@email.com",
-      },
-    ]);
+    // setSongs([
+    //   ...songs,
+    //   {
+    //     ...song,
+    //     id: Math.random().toString(),
+    //     createdAt: new Date().toISOString(),
+    //     updatedAt: new Date().toISOString(),
+    //     createdBy: "admin@email.com",
+    //     updatedBy: "admin@email.com",
+    //   },
+    // ]);
 
     setSong(newSong);
 
@@ -107,7 +115,7 @@ export function App() {
     setFormKey(formKey + 1);
   }
 
-  if (fetchError) {
+  if (isError) {
     return <p>Failed to load songs.</p>;
   }
 
@@ -115,6 +123,7 @@ export function App() {
     <>
       <section className="m-3">
         <h1 className="underline text-4xl my-5">Songs</h1>
+        {isRefetching && <p>Refetching</p>}
 
         <h2 className="text-xl">Add Song</h2>
 
@@ -160,7 +169,10 @@ export function App() {
         ) : (
           songs.map((song) => {
             return (
-              <div className="max-w-sm rounded overflow-hidden shadow-lg bg-cyan-200 hover:bg-cyan-500 transition-colors border-gray-300 p-5 mt-3">
+              <section
+                key={song.id}
+                className="max-w-sm rounded overflow-hidden shadow-lg bg-cyan-200 hover:bg-cyan-500 transition-colors border-gray-300 p-5 mt-3"
+              >
                 <h2 className="font-bold text-3xl mb-2 p-2">
                   {song.title} by: {song.artist}
                 </h2>
@@ -175,7 +187,7 @@ export function App() {
                   date={song.updatedAt}
                   action="Updated"
                 />
-              </div>
+              </section>
             );
           })
         )}
