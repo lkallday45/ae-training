@@ -1,10 +1,9 @@
 import { Button, CircularProgress } from "@mui/material";
 import { SongMetaData } from "./SongMetaData";
 import { Song } from "./types/Song";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import FormField from "./components/FormField";
-import { getSongs } from "./services/songService";
-import { useQuery } from "@tanstack/react-query";
+import { useCreateSong, useGetSongs } from "./hooks/useSongs";
 
 export type NewSong = Omit<
   Song,
@@ -40,29 +39,7 @@ export function App() {
   // Derived state
   const errors = validate();
 
-  const {
-    data: songs = [],
-    isError,
-    isLoading,
-    isRefetching,
-  } = useQuery({
-    queryKey: ["songs"],
-    queryFn: getSongs,
-  });
-
-  // useEffect(() => {
-  //   async function fetchSongs() {
-  //     try {
-  //       const songs = await getSongs();
-  //       setSongs(songs);
-  //       setIsLoading(false);
-  //     } catch (error) {
-  //       setFetchError(error as Error);
-  //     }
-  //   }
-
-  //   fetchSongs();
-  // }, []);
+  const { data: songs = [], isLoading, isRefetching } = useGetSongs();
 
   function onChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -86,6 +63,22 @@ export function App() {
     return errors;
   }
 
+  const songMutation = useCreateSong(() => {
+    setFormKey(formKey + 1);
+    setSong(newSong);
+    setStatus("idle");
+  });
+
+  // const songMutation = useMutation({
+  //   mutationFn: (song: NewSong) => createSong(song),
+  //   onSuccess: () => {
+  //     setFormKey(formKey + 1);
+  //     setSong(newSong);
+  //     setStatus("idle");
+  //     queryClient.invalidateQueries({ queryKey: ["songs"] });
+  //   },
+  // });
+
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("submitted");
@@ -96,27 +89,13 @@ export function App() {
     // Save it somewhere
     // Validate
 
-    // setSongs([
-    //   ...songs,
-    //   {
-    //     ...song,
-    //     id: Math.random().toString(),
-    //     createdAt: new Date().toISOString(),
-    //     updatedAt: new Date().toISOString(),
-    //     createdBy: "admin@email.com",
-    //     updatedBy: "admin@email.com",
-    //   },
-    // ]);
+    // setSong(newSong);
 
-    setSong(newSong);
+    // setStatus("idle");
+    // setTouched({});
+    // setFormKey(formKey + 1);
 
-    setStatus("idle");
-    setTouched({});
-    setFormKey(formKey + 1);
-  }
-
-  if (isError) {
-    return <p>Failed to load songs.</p>;
+    songMutation.mutate(song);
   }
 
   return (

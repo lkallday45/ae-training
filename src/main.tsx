@@ -8,17 +8,29 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import { worker } from "./mocks/browser";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ErrorBoundary } from "react-error-boundary";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 if (import.meta.env.VITE_ENABLE_MSW === "true") {
   worker.start();
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      useErrorBoundary: true,
+      retry: false,
+    },
+  },
+});
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
+    <ErrorBoundary fallback={<p>Oops!</p>}>
+      <QueryClientProvider client={queryClient}>
+        <ReactQueryDevtools />
+        <App />
+      </QueryClientProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
